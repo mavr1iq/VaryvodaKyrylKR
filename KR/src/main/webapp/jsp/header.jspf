@@ -1,0 +1,32 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<style>
+    <%@include file="/WEB-INF/style.css"%>
+</style>
+<header>
+    <span style="float:right" class="nowrap">
+    <c:if test="${empty sessionScope.get(\"user\")}">
+        <form action="${pageContext.request.contextPath}/do/login" method="post">
+            <input type="text" name="login"/>
+            <input type="text" name="pass"/>
+            <input type="submit" value="Log in" name="submit">
+            <input type="submit" value="Register" name="submit">
+        </form>
+    </c:if>
+
+
+
+    <c:if test="${!empty sessionScope.get(\"user\")}">
+        <div class="field">
+        <a href="profile">Профіль</a><c:if test="${!empty sessionScope.get(\"wish\") && sessionScope.get(\"wish\").size() > 0}">
+            (${sessionScope.get("wish").size()})
+        </c:if>&nbsp&nbsp
+        <form action="${pageContext.request.contextPath}/do/logout" method="post">
+            <input type="submit" value="Log out">
+        </form>
+        </div>
+    </c:if>
+    </span>
+</header>
+</html>

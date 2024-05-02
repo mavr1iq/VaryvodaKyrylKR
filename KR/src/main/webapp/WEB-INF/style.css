@@ -1,0 +1,21 @@
+
+.text-area {
+    width: 600px; /* Ширина области */
+    height: 200px; /* Высота области */
+}
+.catalog {
+    margin: 0;
+    font-size: 20px;
+}
+.nowrap {
+    white-space: nowrap;
+}
+.field {
+    display: flex;
+    margin-left: 20px;
+}
+label {
+    display: inline-block;
+    width: 80px;
+    text-align: left;
+}
