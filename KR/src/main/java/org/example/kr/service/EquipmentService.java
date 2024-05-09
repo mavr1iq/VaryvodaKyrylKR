@@ -24,8 +24,16 @@ public class EquipmentService {
         return daoFactory.getEquipmentDAO().getAll();
     }
 
+    public List<Equipment> getAll(int typeId) throws SQLException {
+        return daoFactory.getEquipmentDAO().getAll(typeId);
+    }
+
     public boolean addEquipment(String name, String description, String type, float price) throws SQLException {
         return daoFactory.getEquipmentDAO().set(name, description, type, price);
+    }
+
+    public boolean addEquipment(String name, String type, float price) throws SQLException {
+        return daoFactory.getEquipmentDAO().set(name, type, price);
     }
 
     public boolean updateEquipment(String keyName, String name, String description, String type, Float price) throws SQLException {

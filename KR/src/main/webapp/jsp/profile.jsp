@@ -26,17 +26,16 @@
     Список збереженого:
 </h2>
 <h3>
-    <span class="field">
     <c:forEach var="wish" items="${requestScope.get(\"list\")}">
-        <p class="catalog">
             ${wish.getType()} <a href="${pageContext.request.contextPath}/do/equipment?${wish.getName()}">${wish.getName()}</a> ${wish.getPrice()}&nbsp&nbsp
             <form action="removeFromWishList" method="post">
-        <input type="submit" value="Delete">
-        <input type="hidden" value="${wish.getId()}" name="id">
-    </form>
-        </p>
+                <input type="submit" value="Delete">
+                <input type="hidden" value="${wish.getId()}" name="id">
+            </form>
     </c:forEach>
-    </span>
 </h3>
 </body>
+<div class="footer">
+    <%@include file="footer.jspf"%>
+</div>
 </html>

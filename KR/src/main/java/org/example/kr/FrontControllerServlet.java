@@ -6,30 +6,32 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.example.kr.model.Equipment;
-import org.example.kr.model.User;
-import org.example.kr.service.EquipmentService;
-import org.example.kr.service.UserService;
+import org.example.kr.model.*;
+import org.example.kr.service.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @WebServlet(name = "FrontControllerServlet", urlPatterns = "/do/*")
 public class FrontControllerServlet extends HttpServlet {
     UserService userService;
     EquipmentService equipmentService;
+    TypesService typesService;
     @Override
     public void init(ServletConfig config) throws ServletException {
         userService = (UserService) config.getServletContext().getAttribute("userService");
         equipmentService = (EquipmentService) config.getServletContext().getAttribute("equipmentService");
+        typesService = (TypesService) config.getServletContext().getAttribute("typesService");
     }
 
     public void proceed(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException, SQLException {
         String check;
         String query;
         String equipId;
+        String type;
         String path = req.getPathInfo();
 
         if (path == null) {
@@ -57,16 +59,54 @@ public class FrontControllerServlet extends HttpServlet {
             case "/action":
                 check = req.getParameter("action");
                 query = req.getParameter("hidden");
+                type = req.getParameter("type");
 
+                // Перевірка Редагування чи Видалення
+                // Всередині першої перевірки - перевірка чи категорія чи товар
                 if (check.equals("Edit")) {
-                    equipment(req, resp, query, true);
+                    if (type.equals("equip")) {
+                        equipment(req, resp, query, true);
+                    }else if (type.equals("category")) {
+                        req.setAttribute("edit", true);
+                        req.setAttribute("equip", false);
+                        req.setAttribute("query", query);
+                        req.getRequestDispatcher("/jsp/add.jsp").forward(req, resp);
+                    }
                 }else if (check.equals("Delete")) {
-                    delete(req, resp, query);
+                    if (type.equals("equip")) {
+                        delete(req, resp, query, true);
+                    }else if (type.equals("category")) {
+                        delete(req, resp, query, false);
+                    }
                 }
                 break;
             case "/edit":
                 query = req.getParameter("hidden");
                 edit(req, resp, query);
+                break;
+            case "/editCategory":
+                query = req.getParameter("hidden");
+                editCategory(req, resp, query);
+                break;
+            case "/proceedAdd":
+                check = req.getParameter("add");
+
+                if (check.equals("Add Equipment")) {
+                    req.setAttribute("equip", true);
+                    req.getRequestDispatcher("/jsp/add.jsp").forward(req, resp);
+                } else if (check.equals("Add Category")) {
+                    req.setAttribute("equip", false);
+                    req.getRequestDispatcher("/jsp/add.jsp").forward(req, resp);
+                }
+                break;
+            case "/add":
+                check = req.getParameter("hidden");
+
+                if (check.equals("equip")) {
+                    add(req, resp, true);
+                } else if (check.equals("category")) {
+                    add(req, resp, false);
+                }
                 break;
             case "/addToWishList":
                 equipId = req.getParameter("id");
@@ -75,7 +115,10 @@ public class FrontControllerServlet extends HttpServlet {
             case "/removeFromWishList":
                 equipId = req.getParameter("id");
                 removeFromWishList(req, resp, equipId);
-
+                break;
+            case "/sort":
+                query = req.getQueryString();
+                sort(req, resp, query);
             default:
                 catalog(req, resp);
                 break;
@@ -142,7 +185,21 @@ public class FrontControllerServlet extends HttpServlet {
     }
 
     public void catalog(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException, SQLException {
-        req.setAttribute("list", equipmentService.getAll());
+        if (req.getAttribute("types") == null) {
+            req.setAttribute("types", typesService.getAll());
+            req.setAttribute("list", equipmentService.getAll());
+        }else {
+            List<Type> types = (List<Type>) req.getAttribute("types");
+            List<Equipment> list;
+            if (!types.isEmpty()) {
+                list = equipmentService.getAll(types.get(0).getTypeId());
+            }
+            else {
+                list = new ArrayList<>();
+            }
+            req.setAttribute("list", list);
+        }
+
         req.getRequestDispatcher("/jsp/catalog.jsp").forward(req, resp);
     }
 
@@ -200,11 +257,43 @@ public class FrontControllerServlet extends HttpServlet {
         req.getRequestDispatcher("/do").forward(req, resp);
     }
 
-    public void delete(HttpServletRequest req, HttpServletResponse resp, String key) throws ServletException, IOException, SQLException {
-        if (!equipmentService.deleteEquipment(key)) {
-            error(req, resp, "Unable to delete equipment");
-            return;
+    public void editCategory(HttpServletRequest req, HttpServletResponse resp, String key) throws ServletException, IOException {
+        String name = req.getParameter("name");
+        String category = req.getParameter("category");
+
+        if (category.isEmpty()) {
+            if (!typesService.updateCategory(key, name)) {
+                error(req, resp, "Unable to update category");
+            }
         }
+        else if (name.isEmpty()) {
+            int typeId = typesService.getId(category);
+            if (!typesService.updateCategory(key, typeId)) {
+                error(req, resp, "Unable to update category");
+            }
+        }
+        else {
+            int typeId = typesService.getId(category);
+            if (!typesService.updateCategory(key, name, typeId)) {
+                error(req, resp, "Unable to update category");
+            }
+        }
+        req.getRequestDispatcher("/do").forward(req, resp);
+    }
+
+    public void delete(HttpServletRequest req, HttpServletResponse resp, String key, Boolean equip) throws ServletException, IOException, SQLException {
+        if (equip) {
+            if (!equipmentService.deleteEquipment(key)) {
+                error(req, resp, "Unable to delete equipment");
+                return;
+            }
+        }else {
+            int id = typesService.getId(key);
+            if (!typesService.delete(id)) {
+                error(req, resp, "Unable to delete category. Try to delete all elements from this category");
+            }
+        }
+
         req.getRequestDispatcher("/do").forward(req, resp);
     }
 
@@ -228,6 +317,54 @@ public class FrontControllerServlet extends HttpServlet {
         List<Integer> wish = userService.getWishList(user.getId());
         req.getSession().setAttribute("wish", wish);
         profile(req, resp);
+    }
+
+    public void sort(HttpServletRequest req, HttpServletResponse resp, String query) throws ServletException, IOException {
+        int id = Integer.parseInt(query);
+        List<Type> types = typesService.getAllById(id);
+        req.setAttribute("types", types);
+        req.getRequestDispatcher(".").forward(req, resp);
+    }
+
+    public void add(HttpServletRequest req, HttpServletResponse resp, Boolean equipment) throws ServletException, IOException, SQLException {
+        if (equipment) {
+            String name = req.getParameter("name");
+            String description = req.getParameter("description");
+            Float price = null;
+            String type = req.getParameter("type");
+
+            if (!req.getParameter("price").isEmpty()) {
+                try {
+                    price = Float.parseFloat(req.getParameter("price"));
+                }catch (NumberFormatException e) {
+                    error(req, resp, "Invalid price");
+                    return;
+                }
+            }else {
+                error(req, resp, "Price cannot be empty");
+                return;
+            }
+
+            if (!equipmentService.addEquipment(name, description, type, price)) {
+                error(req, resp, "Unable to add equipment");
+            }
+        }
+        else {
+            String name = req.getParameter("name");
+            String category = req.getParameter("category");
+
+            if (category.isEmpty()) {
+                if (!typesService.addCategory(name)) {
+                    error(req, resp, "Unable to add category");
+                }
+            }else {
+                int id = typesService.getId(category);
+                if (!typesService.addCategory(name, id)) {
+                    error(req, resp, "Unable to add category");
+                }
+            }
+        }
+        req.getRequestDispatcher("/do").forward(req, resp);
     }
 
     public void error(HttpServletRequest req, HttpServletResponse resp, String txt) throws ServletException, IOException {

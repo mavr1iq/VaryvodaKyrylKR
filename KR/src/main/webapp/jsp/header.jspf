@@ -8,8 +8,8 @@
     <span style="float:right" class="nowrap">
     <c:if test="${empty sessionScope.get(\"user\")}">
         <form action="${pageContext.request.contextPath}/do/login" method="post">
-            <input type="text" name="login"/>
-            <input type="text" name="pass"/>
+            <input type="text" name="login" placeholder="Логін"/>
+            <input type="text" name="pass" placeholder="Пароль"/>
             <input type="submit" value="Log in" name="submit">
             <input type="submit" value="Register" name="submit">
         </form>

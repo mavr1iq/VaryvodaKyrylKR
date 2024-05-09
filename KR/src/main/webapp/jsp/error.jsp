@@ -12,4 +12,7 @@
     <br>
     Помилка '<c:out value="${requestScope.get(\"error\")}"/>'
 </body>
+<div class="footer">
+    <%@include file="footer.jspf"%>
+</div>
 </html>

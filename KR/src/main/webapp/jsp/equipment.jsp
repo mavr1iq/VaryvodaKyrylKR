@@ -31,15 +31,17 @@
 </div>
 <c:if test="${requestScope.get(\"edit\")}">
 <h2>Зміна товару</h2>
-<br>
 <form action="${pageContext.request.contextPath}/do/edit" method="post">
-    <label>Назва: </label><input type="text" name="name"><br />
-    <label>Опис: </label><input type="text" name="description"><br />
-    <label>Ціна: </label><input type="text" name="price"><br />
-    <label>Категорія: </label><input type="text" name="type"><br />
+    <input type="text" name="name" placeholder="Назва"><br />
+    <input type="text" name="description" placeholder="Опис"><br />
+    <input type="text" name="price" placeholder="Ціна"><br />
+    <input type="text" name="type" placeholder="Категорія"><br />
     <input type="submit" value="Змінити">
     <input type="hidden" name="hidden" value="${requestScope.get("equip").getName()}">
     </c:if>
 </form>
 </body>
+<div class="footer">
+    <%@include file="footer.jspf"%>
+</div>
 </html>

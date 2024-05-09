@@ -4,6 +4,7 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import org.example.kr.dao.DAOFactory;
 import org.example.kr.service.EquipmentService;
+import org.example.kr.service.TypesService;
 import org.example.kr.service.UserService;
 
 public class ContextListener implements ServletContextListener {
@@ -13,8 +14,10 @@ public class ContextListener implements ServletContextListener {
 
         UserService userService = new UserService(factory);
         EquipmentService equipmentService = new EquipmentService(factory);
+        TypesService typesService = new TypesService(factory);
 
         sce.getServletContext().setAttribute("userService", userService);
         sce.getServletContext().setAttribute("equipmentService", equipmentService);
+        sce.getServletContext().setAttribute("typesService", typesService);
     }
 }

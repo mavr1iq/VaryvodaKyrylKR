@@ -2,6 +2,7 @@ package org.example.kr.dao.impl;
 
 import org.example.kr.dao.DAOManager;
 import org.example.kr.dao.EquipmentDAO;
+import org.example.kr.dao.TypesDAO;
 import org.example.kr.model.Equipment;
 
 import java.sql.*;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EquipmentDAOImpl implements EquipmentDAO {
+    TypesDAO typesDAO;
     DAOManager mngr;
     Connection con;
     Statement stmt;
@@ -16,6 +18,7 @@ public class EquipmentDAOImpl implements EquipmentDAO {
         this.mngr = mngr;
         this.stmt = mngr.getStatement();
         this.con = mngr.getConnection();
+        typesDAO = new TypesDAOImpl(mngr);
     }
 
     @Override
@@ -32,10 +35,10 @@ public class EquipmentDAOImpl implements EquipmentDAO {
             if (rs.next()) {
                 int id = rs.getInt("id");
                 String description = rs.getString("description");
-                String type = rs.getString("type");
+                int type_id = rs.getInt("type_id");
                 float price = rs.getFloat("price");
 
-                return new Equipment(id, key, description, type, price);
+                return new Equipment(id, key, description, typesDAO.getName(type_id), price);
             }
         }catch (Exception e) {
             System.out.println(e.getMessage());
@@ -57,10 +60,10 @@ public class EquipmentDAOImpl implements EquipmentDAO {
             if (rs.next()) {
                 String name = rs.getString("name");
                 String description = rs.getString("description");
-                String type = rs.getString("type");
+                int type_id = rs.getInt("type_id");
                 float price = rs.getFloat("price");
 
-                return new Equipment(id, name, description, type, price);
+                return new Equipment(id, name, description, typesDAO.getName(type_id), price);
             }
         }catch (Exception e) {
             System.out.println(e.getMessage());
@@ -83,9 +86,37 @@ public class EquipmentDAOImpl implements EquipmentDAO {
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String description = rs.getString("description");
-                String type = rs.getString("type");
+                int type_id = rs.getInt("type_id");
                 float price = rs.getFloat("price");
-                list.add(new Equipment(id, name, description, type, price));
+
+                list.add(new Equipment(id, name, description, typesDAO.getName(type_id), price));
+            }
+            return list;
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public List<Equipment> getAll(int typeId) {
+        String sql = "select * from \"equipData\" where \"type_id\" = ? order by id";
+        List<Equipment> list = new ArrayList<Equipment>();
+
+        try {
+            PreparedStatement pstmt = this.con.prepareStatement(sql);
+            pstmt.setInt(1, typeId);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs == null) {
+                return null;
+            }
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                String description = rs.getString("description");
+                float price = rs.getFloat("price");
+
+                list.add(new Equipment(id, name, description, typesDAO.getName(typeId), price));
             }
             return list;
         }catch (Exception e) {
@@ -96,13 +127,13 @@ public class EquipmentDAOImpl implements EquipmentDAO {
 
     @Override
     public Boolean set(String name, String description, String type, Float price) {
-        String sql = "insert into \"equipData\"(\"name\", \"description\", \"type\", \"price\") values (?,?,?,?)";
+        String sql = "insert into \"equipData\"(\"name\", \"description\", \"type_id\", \"price\") values (?,?,?,?)";
 
         try {
             PreparedStatement pstmt = con.prepareStatement(sql);
             pstmt.setString(1, name);
             pstmt.setString(2, description);
-            pstmt.setString(3, type);
+            pstmt.setInt(3, typesDAO.getId(type));
             pstmt.setFloat(4, price);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -112,15 +143,31 @@ public class EquipmentDAOImpl implements EquipmentDAO {
     }
 
     @Override
+    public Boolean set(String name, String type, Float price) {
+        String sql = "insert into \"equipData\"(\"name\", \"type_id\", \"price\") values (?,?,?)";
+
+        try {
+            PreparedStatement pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, name);
+            pstmt.setInt(2, typesDAO.getId(type));
+            pstmt.setFloat(3, price);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return false;
+    }
+
+    @Override
     public Boolean updateEquipment(String keyName, String name, String description, String type, Float price) {
-        String sql = "UPDATE \"equipData\" SET name=?, description=?, price=?, type=? WHERE name=?";
+        String sql = "UPDATE \"equipData\" SET name=?, description=?, price=?, type_id=? WHERE name=?";
 
         try {
             PreparedStatement pstmt = con.prepareStatement(sql);
             pstmt.setString(1, name);
             pstmt.setString(2, description);
             pstmt.setFloat(3, price);
-            pstmt.setString(4, type);
+            pstmt.setInt(4, typesDAO.getId(type));
             pstmt.setString(5, keyName);
             return pstmt.executeUpdate() > 0;
 
@@ -132,13 +179,13 @@ public class EquipmentDAOImpl implements EquipmentDAO {
 
     @Override
     public Boolean updateEquipment(String keyName, String name, String type, Float price) {
-        String sql = "UPDATE \"equipData\" SET name=?, price=?, type=? WHERE name=?";
+        String sql = "UPDATE \"equipData\" SET name=?, price=?, type_id=? WHERE name=?";
 
         try {
             PreparedStatement pstmt = con.prepareStatement(sql);
             pstmt.setString(1, name);
             pstmt.setFloat(2, price);
-            pstmt.setString(3, type);
+            pstmt.setInt(3, typesDAO.getId(type));
             pstmt.setString(4, keyName);
             return pstmt.executeUpdate() > 0;
 
@@ -150,11 +197,11 @@ public class EquipmentDAOImpl implements EquipmentDAO {
 
     @Override
     public Boolean updateEquipment(String keyName, String type) {
-        String sql = "UPDATE \"equipData\" SET type=? WHERE name=?";
+        String sql = "UPDATE \"equipData\" SET type_id=? WHERE name=?";
 
         try {
             PreparedStatement pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, type);
+            pstmt.setInt(1, typesDAO.getId(type));
             pstmt.setString(2, keyName);
             return pstmt.executeUpdate() > 0;
 
