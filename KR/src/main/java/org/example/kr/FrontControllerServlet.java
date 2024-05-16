@@ -12,7 +12,6 @@ import org.example.kr.service.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @WebServlet(name = "FrontControllerServlet", urlPatterns = "/do/*")
@@ -32,6 +31,7 @@ public class FrontControllerServlet extends HttpServlet {
         String query;
         String equipId;
         String type;
+        int result;
         String path = req.getPathInfo();
 
         if (path == null) {
@@ -54,7 +54,8 @@ public class FrontControllerServlet extends HttpServlet {
                 break;
             case "/equipment":
                 query = req.getQueryString();
-                equipment(req, resp, query, false);
+                result = Integer.parseInt(query);
+                equipment(req, resp, result, false);
                 break;
             case "/action":
                 check = req.getParameter("action");
@@ -65,7 +66,8 @@ public class FrontControllerServlet extends HttpServlet {
                 // Всередині першої перевірки - перевірка чи категорія чи товар
                 if (check.equals("Edit")) {
                     if (type.equals("equip")) {
-                        equipment(req, resp, query, true);
+                        result = Integer.parseInt(query);
+                        equipment(req, resp, result, true);
                     }else if (type.equals("category")) {
                         req.setAttribute("edit", true);
                         req.setAttribute("equip", false);
@@ -189,10 +191,10 @@ public class FrontControllerServlet extends HttpServlet {
             req.setAttribute("types", typesService.getAll());
             req.setAttribute("list", equipmentService.getAll());
         }else {
-            List<Type> types = (List<Type>) req.getAttribute("types");
+            String type_id = String.valueOf(req.getAttribute("type_id"));
             List<Equipment> list;
-            if (!types.isEmpty()) {
-                list = equipmentService.getAll(types.get(0).getTypeId());
+            if (type_id != null) {
+                list = equipmentService.getAll(Integer.parseInt(type_id));
             }
             else {
                 list = new ArrayList<>();
@@ -203,8 +205,8 @@ public class FrontControllerServlet extends HttpServlet {
         req.getRequestDispatcher("/jsp/catalog.jsp").forward(req, resp);
     }
 
-    public void equipment(HttpServletRequest req, HttpServletResponse resp, String query, boolean edit) throws ServletException, IOException, SQLException {
-        Equipment equip = equipmentService.getByName(query);
+    public void equipment(HttpServletRequest req, HttpServletResponse resp, int query, boolean edit) throws ServletException, IOException, SQLException {
+        Equipment equip = equipmentService.getById(query);
         req.setAttribute("equip", equip);
 
         if (edit) {
@@ -217,7 +219,7 @@ public class FrontControllerServlet extends HttpServlet {
     public void edit(HttpServletRequest req, HttpServletResponse resp, String key) throws ServletException, IOException, SQLException {
         String name = req.getParameter("name");
         String description = req.getParameter("description");
-        Float price = null;
+        Float price = 0.0F;
         String type = req.getParameter("type");
 
         if (!req.getParameter("price").isEmpty()) {
@@ -229,19 +231,19 @@ public class FrontControllerServlet extends HttpServlet {
             }
         }
 
-        if (description.isEmpty() && !name.isEmpty() && price != null && !type.isEmpty()) {
+        if (description.isEmpty() && !name.isEmpty() && price != 0.0 && !type.isEmpty()) {
             // Назва + Тип + Ціна
             if (!equipmentService.updateEquipment(key, name, type, price)) {
                 error(req, resp, "Unable to update equipment");
                 return;
             }
-        }else if (description.isEmpty() && name.isEmpty() && price == null && !type.isEmpty()) {
+        }else if (description.isEmpty() && name.isEmpty() && price == 0.0 && !type.isEmpty()) {
             // Тип
             if (!equipmentService.updateEquipment(key, type)) {
                 error(req, resp, "Unable to update equipment");
                 return;
             }
-        }else if (description.isEmpty() && name.isEmpty() && price != null && type.isEmpty()) {
+        }else if (description.isEmpty() && name.isEmpty() && price != 0.0 && type.isEmpty()) {
             // Ціна
             if (!equipmentService.updateEquipment(key, price)) {
                 error(req, resp, "Unable to update equipment");
@@ -322,7 +324,9 @@ public class FrontControllerServlet extends HttpServlet {
     public void sort(HttpServletRequest req, HttpServletResponse resp, String query) throws ServletException, IOException {
         int id = Integer.parseInt(query);
         List<Type> types = typesService.getAllById(id);
+
         req.setAttribute("types", types);
+        req.setAttribute("type_id", id);
         req.getRequestDispatcher(".").forward(req, resp);
     }
 

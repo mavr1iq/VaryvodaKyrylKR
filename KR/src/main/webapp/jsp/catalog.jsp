@@ -37,12 +37,12 @@
             </c:if>
         </c:if>
         <p class="catalog">
-            ${equip.getType()} <a href="${pageContext.request.contextPath}/do/equipment?${equip.getName()}">${equip.getName()}</a> ${equip.getPrice()}&nbsp грн &nbsp&nbsp
+            ${equip.getType()} <a href="${pageContext.request.contextPath}/do/equipment?${equip.getId()}">${equip.getName()}</a> ${equip.getPrice()}&nbsp грн &nbsp&nbsp
                 <c:if test="${sessionScope.get(\"user\").isAdmin()}">
                     <form action="${pageContext.request.contextPath}/do/action" method="post" >
                         <input type="submit" value="Edit" name="action">
                         <input type="submit" value="Delete" name="action">
-                        <input type="hidden" value="${equip.getName()}" name="hidden">
+                        <input type="hidden" value="${equip.getId()}" name="hidden">
                         <input type="hidden" value="equip" name="type">
                     </form>
                 </c:if>

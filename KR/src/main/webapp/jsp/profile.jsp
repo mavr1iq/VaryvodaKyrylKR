@@ -27,7 +27,7 @@
 </h2>
 <h3>
     <c:forEach var="wish" items="${requestScope.get(\"list\")}">
-            ${wish.getType()} <a href="${pageContext.request.contextPath}/do/equipment?${wish.getName()}">${wish.getName()}</a> ${wish.getPrice()}&nbsp&nbsp
+            ${wish.getType()} <a href="${pageContext.request.contextPath}/do/equipment?${wish.getId()}">${wish.getName()}</a> ${wish.getPrice()}&nbsp&nbsp
             <form action="removeFromWishList" method="post">
                 <input type="submit" value="Delete">
                 <input type="hidden" value="${wish.getId()}" name="id">

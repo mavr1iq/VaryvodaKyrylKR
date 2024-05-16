@@ -229,11 +229,17 @@ public class EquipmentDAOImpl implements EquipmentDAO {
 
     @Override
     public Boolean delete(String name) {
-        String sql = "delete from \"equipData\" where name=?";
+        String sql0 = "delete from \"equipData\" where name=?";
+        String sql1 = "delete from \"loginequip\" where equip_id=?";
         try {
-            PreparedStatement pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, name);
-            return pstmt.executeUpdate() > 0;
+            PreparedStatement pstmt0 = con.prepareStatement(sql0);
+            pstmt0.setString(1, name);
+
+            PreparedStatement pstmt1 = con.prepareStatement(sql1);
+            pstmt1.setInt(1, ((Equipment)get(name)).getId());
+
+            pstmt1.executeUpdate();
+            return pstmt0.executeUpdate() > 0;
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
