@@ -1,7 +1,6 @@
 package org.example.kr.dao.impl;
 
 import org.example.kr.dao.*;
-import org.example.kr.model.Equipment;
 
 import java.sql.*;
 import java.util.ArrayList;

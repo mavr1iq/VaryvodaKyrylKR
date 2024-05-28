@@ -1,7 +1,6 @@
 package org.example.kr.service;
 
 import org.example.kr.dao.DAOFactory;
-import org.example.kr.model.Equipment;
 import org.example.kr.model.User;
 
 import java.util.List;

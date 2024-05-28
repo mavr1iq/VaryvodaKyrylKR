@@ -1,9 +1,6 @@
 package org.example.kr.dao;
 
-import org.example.kr.dao.impl.EquipmentDAOImpl;
-import org.example.kr.dao.impl.TypesDAOImpl;
-import org.example.kr.dao.impl.UserDAOImpl;
-import org.example.kr.dao.impl.UserEquipDAOImpl;
+import org.example.kr.dao.impl.*;
 
 public class DAOFactory {
     private final UserDAO userDAO;

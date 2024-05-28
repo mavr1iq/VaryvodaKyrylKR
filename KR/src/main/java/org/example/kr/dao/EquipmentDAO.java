@@ -2,7 +2,6 @@ package org.example.kr.dao;
 
 import org.example.kr.model.Equipment;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public interface EquipmentDAO {

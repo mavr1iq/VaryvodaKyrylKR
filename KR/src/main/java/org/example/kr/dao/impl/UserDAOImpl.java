@@ -1,14 +1,10 @@
 package org.example.kr.dao.impl;
 
-import org.example.kr.dao.DAOFactory;
 import org.example.kr.dao.DAOManager;
 import org.example.kr.dao.UserDAO;
-import org.example.kr.model.Equipment;
 import org.example.kr.model.User;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class UserDAOImpl implements UserDAO {
     DAOManager mngr;
